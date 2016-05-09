@@ -23,8 +23,14 @@ imageDatas = (function genImageURL(imageDataArr) {
 
 var ImaFigure = React.createClass({
   render: function () {
-    return (
-      <figure className="img-figure">
+    var styleObj = {};
+
+    if (this.props.arrange) {
+      styleObj = this.props.arrange.pos;
+    }
+
+      return (
+      <figure className="img-figure" style={styleObj}>
         <img src={this.props.data.imageURL}
              alt={this.props.data.title}/>
         <figcaption>
@@ -34,6 +40,10 @@ var ImaFigure = React.createClass({
     )
   }
 });
+
+function  getRandom(low, high) {
+  return Math.ceil(Math.random() * (high - low));
+}
 
 var AppComponent = React.createClass({
   Constant : {
@@ -63,7 +73,8 @@ var AppComponent = React.createClass({
           top: '0'
         }
       }
-      imgFigures.push(<ImaFigure data={value} ref={'imgFigure' + index}/>);
+      imgFigures.push(<ImaFigure data={value}
+                                 ref={'imgFigure' + index} arrange={this.state.imgsArrangeArr[index]}/>);
     }.bind(this));
 
     return (
@@ -83,35 +94,41 @@ var AppComponent = React.createClass({
       Constant = this.Constant,
       centerPos = Constant.centerPos,
       hPosRange = Constant.hPosRange,
-      vPosRange = Constant.hPosRange,
+      vPosRange = Constant.vPosRange,
       hPosRangeLeftSecX = hPosRange.leftSecX,
       hPosRangeRightSecX = hPosRange.rightSecX,
       hPosRangeY = hPosRange.y,
       vPosRangeTopY = vPosRange.topY,
-      vPosRangeX = vPosRange.x,
+      vPosRangeX = vPosRange.x;
 
-      imgsArrangeTopArr = [],
-      topImgNum = Math.ceil(Math.random() * 2), // 取0或者一张图片
+      // 设置居中centerIndex的图片
+      var imgsArrangeCenterArr = imgsArrangeArr.splice(centerIndex, 1);
+      imgsArrangeCenterArr[0].pos = centerPos;
 
-      topImgSpliceIndex = 0,
+      // 设置上部区域的图片
+      var topImgNum = 1, // 取0或者一张图片
+        topImgSpliceIndex = Math.ceil(Math.random() * (imgsArrangeArr.length - topImgNum)),
+        imgsArrangeTopArr = imgsArrangeArr.splice(topImgSpliceIndex, topImgNum);
 
-      imgsArrangeCenterArr = imgsArrangeArr.splice(centerIndex, 1);
+      imgsArrangeTopArr.forEach(function (value, index) {
+          imgsArrangeTopArr[index].pos = {
+            left: getRandom(vPosRangeX[0], vPosRangeX[1]),
+            top: getRandom(vPosRangeTopY[0], vPosRangeTopY[1])
+          }
+      });
 
-    // 首先居中centerIndex的图片
-    imgsArrangeCenterArr[0].pos = centerPos;
+      imgsArrangeArr.splice(centerIndex, 0, imgsArrangeCenterArr[0]);
+      imgsArrangeArr.splice(topImgSpliceIndex, 0, imgsArrangeTopArr[0]);
 
-    this.setState({
-      imgsArrangeArr: imgsArrangeArr
-    });
-
+      this.setState({
+        imgsArrangeArr: imgsArrangeArr
+      });
+      console.log(imgsArrangeArr);
   },
 
   getInitialState() {
     return {
       imgsArrangeArr: [
-        {
-
-        }
       ]
     }
   },
@@ -154,7 +171,7 @@ var AppComponent = React.createClass({
     this.Constant.vPosRange.x[0] = halfStageW - imgW;
     this.Constant.vPosRange.x[1] = halfStageW;
 
-    this.rearrange(0);
+    this.rearrange(3);
   }
 });
 
